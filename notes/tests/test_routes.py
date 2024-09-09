@@ -43,9 +43,9 @@ class TestRoutes(TestCase):
         for user, status in user_statuses:
             user = self.client.force_login(user)
             urls = (
-                'notes:edit',
-                'notes:detail',
-                'notes:delete',
+                ('notes:edit'),
+                ('notes:detail'),
+                ('notes:delete'),
             )
             for name in urls:
                 with self.subTest(user=user, name=name):
