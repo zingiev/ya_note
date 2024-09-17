@@ -28,7 +28,7 @@ def test_notes_list_for_different_users(
 
 
 @pytest.mark.parametrize(
-    # В качестве параметров передаём name и args для reverse.
+    # В качестве параметров передаём ame и args для reverse.
     'name, args',
     (
         # Для тестирования страницы создания заметки 
