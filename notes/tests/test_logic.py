@@ -15,13 +15,13 @@ class TestNotesCreator(TestData):
         self.assertEqual(Note.objects.count(), notes_count)
 
     def test_user_can_create_note(self):
-        notes_count = Note.objects.count()
+        Note.objects.all().delete()
         response = self.author_client.post(
             self.notes_add_url, data=self.form_data
         )
         self.assertRedirects(response, self.notes_success_url)
-        self.assertEqual(Note.objects.count(), notes_count + 1)
-        note = Note.objects.last()
+        self.assertEqual(Note.objects.count(), 1)
+        note = Note.objects.get()
         self.assertEqual(note.title, self.form_data['title'])
         self.assertEqual(note.text, self.form_data['text'])
         self.assertEqual(note.author, self.author)
@@ -39,8 +39,9 @@ class TestNotesCreator(TestData):
         )
 
     def test_filling_slug(self):
+        Note.objects.all().delete()
         self.author_client.post(self.notes_add_url, data=self.form_data)
-        note = Note.objects.last()
+        note = Note.objects.get()
         expected_slug = slugify(self.form_data['title'])
         self.assertEqual(note.slug, expected_slug)
 
