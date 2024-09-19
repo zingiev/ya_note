@@ -28,7 +28,7 @@ class TestCreateEditPage(TestData):
 
     def test_has_form_in_page_add_and_edit(self):
         for url in self.notes_add_url, self.notes_edit_url:
-            with self.subTest():
+            with self.subTest(url=url):
                 response = self.author_client.get(url)
                 self.assertIn('form', response.context)
                 self.assertIsInstance(response.context['form'], NoteForm)

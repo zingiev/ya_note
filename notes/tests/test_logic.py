@@ -1,16 +1,10 @@
 from http import HTTPStatus
 
-from pytils.translit import slugify
-from django.contrib.auth import get_user_model  # type: ignore
-from django.test import Client, TestCase  # type: ignore
-from django.urls import reverse  # type: ignore
+from pytils.translit import slugify  # type: ignore
 
 from notes.forms import WARNING
 from notes.models import Note
 from .conftest import TestData
-
-
-User = get_user_model()
 
 
 class TestNotesCreator(TestData):
@@ -27,7 +21,7 @@ class TestNotesCreator(TestData):
         )
         self.assertRedirects(response, self.notes_success_url)
         self.assertEqual(Note.objects.count(), notes_count + 1)
-        note = Note.objects.get(pk=notes_count + 1)
+        note = Note.objects.last()
         self.assertEqual(note.title, self.form_data['title'])
         self.assertEqual(note.text, self.form_data['text'])
         self.assertEqual(note.author, self.author)
@@ -38,15 +32,15 @@ class TestNotesCreator(TestData):
         response = self.author_client.post(
             self.notes_add_url, data=self.form_data
         )
-        self.assertFormError(
-            response, 'form', 'slug', self.note.slug + WARNING
-        )
         self.assertEqual(Note.objects.count(), notes_count)
+        slug = response.context['form']['slug'].data
+        self.assertFormError(
+            response, 'form', 'slug', slug + WARNING
+        )
 
     def test_filling_slug(self):
-        coments_count = Note.objects.count()
         self.author_client.post(self.notes_add_url, data=self.form_data)
-        note = Note.objects.get(pk=coments_count + 1)
+        note = Note.objects.last()
         expected_slug = slugify(self.form_data['title'])
         self.assertEqual(note.slug, expected_slug)
 
@@ -69,7 +63,8 @@ class TestNoteEditDelete(TestData):
         self.form_data['text'] = self.NEW_NOTES_TEXT
         self.author_client.post(self.notes_edit_url, data=self.form_data)
         note = Note.objects.get(pk=self.note.id)
-        self.assertEqual(note.text, self.NEW_NOTES_TEXT)
+        self.assertEqual(note.text, self.form_data['text'])
+        self.assertEqual(note.title, self.form_data['title'])
 
     def test_user_cant_edit_note_of_another_user(self):
         self.form_data['text'] = self.NEW_NOTES_TEXT
@@ -80,5 +75,5 @@ class TestNoteEditDelete(TestData):
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         self.assertEqual(note.title, self.note.title)
         self.assertEqual(note.text, self.note.text)
-        self.assertEqual(note.author, self.author)
+        self.assertEqual(note.author, self.note.author)
         self.assertEqual(note.slug, self.note.slug)
